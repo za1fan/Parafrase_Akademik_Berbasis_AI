@@ -27,9 +27,15 @@
                     <input type="password" id="apiKey" placeholder="Masukkan API Key Gemini...">
                     <button id="saveApiKey" class="btn-primary">Simpan API</button>
                 </div>
-                <div class="quota-monitor" style="margin-top: 15px; padding: 10px; background: rgba(37, 99, 235, 0.05); border-radius: 8px; border: 1px dashed var(--primary); display: flex; justify-content: space-between; font-size: 0.85rem;">
-                    <div><i class="fas fa-bolt"></i> Sisa Sesi Menit Ini: <span id="quotaRemaining" style="font-weight: bold; color: var(--primary);">-</span></div>
-                    <div><i class="fas fa-hourglass-half"></i> Status Jeda: <span id="quotaResetTime" style="font-weight: bold; color: var(--gold);">Normal</span></div>
+                <div class="quota-monitor" style="margin-top: 15px; padding: 12px 15px; background: rgba(37, 99, 235, 0.06); border-radius: 10px; border: 1px solid rgba(37, 99, 235, 0.15); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-family: 'Poppins', sans-serif;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-bolt" style="color: var(--primary);"></i> 
+                        <span>Sisa Sesi Menit Ini: <strong id="quotaRemaining" style="color: var(--primary); font-size: 0.9rem; margin-left: 2px;">-</strong></span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-hourglass-half" style="color: var(--gold);"></i> 
+                        <span>Status Jeda: <strong id="quotaResetTime" style="color: var(--gold); font-size: 0.9rem; margin-left: 2px;">Normal</strong></span>
+                    </div>
                 </div>
             </section>
 
