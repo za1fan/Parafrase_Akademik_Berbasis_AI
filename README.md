@@ -1,0 +1,1 @@
+# Parafrase_Akademik_Berbasis_AI
