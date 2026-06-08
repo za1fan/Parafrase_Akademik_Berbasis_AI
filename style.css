@@ -430,3 +430,24 @@ select:focus, input:focus {
     .action-buttons { grid-template-columns: 1fr; }
     .app-container { padding: 20px 10px; }
 }
+/* Warna Dinamis untuk Monitor Kuota & Jeda */
+.status-normal {
+    color: #10b981 !important; /* Warna Hijau Cerah */
+    font-weight: bold;
+}
+
+.status-jeda {
+    color: #f59e0b !important; /* Warna Oranye/Kuning */
+    font-weight: bold;
+}
+
+.status-cooldown {
+    color: #ef4444 !important; /* Warna Merah Darurat */
+    font-weight: bold;
+    animation: pulse-blink 1s infinite alternate; /* Efek berkedip biar dramatis */
+}
+
+@keyframes pulse-blink {
+    from { opacity: 1; }
+    to { opacity: 0.5; }
+}
