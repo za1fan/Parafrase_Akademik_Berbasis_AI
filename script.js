@@ -1,9 +1,3 @@
-/**
- * Academic Rewriter AI Pro v3.0 - Live Quota Monitor
- * Fitur: Multi-Pass Logic, Jaccard Similarity, Maximum Rewrite
- * Perbaikan: Live Token/RPM Tracker & Countdown Timer Cooldown Realtime
- */
-
 const CONFIG = {
     MODEL: "gemini-2.5-flash", 
     MAX_HISTORY: 10
