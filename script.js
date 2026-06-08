@@ -103,6 +103,10 @@ async function startRewrite(passes) {
     try {
         for (let i = 1; i <= passes; i++) {
             if (i > 1) {
+                const statusJedaElem = document.getElementById("quotaResetTime");
+                statusJedaElem.innerText = "Jeda Sesi...";
+                statusJedaElem.className = "status-jeda";
+                
                 updateProgress((i / passes) * 100, `Jeda Pengamanan`, `Mengistirahatkan API Google sebentar...`);
                 await sleep(3000);
             }
@@ -127,26 +131,36 @@ async function startRewrite(passes) {
 }
 
 // --- Wrapper Runner dengan Penanganan Siluman & Hitung Mundur ---
+// --- Wrapper Runner dengan Penanganan Siluman & Hitung Mundur + WARNA DINAMIS ---
 async function callGeminiWithRetry(mode, level, currentText, passNumber) {
     const prompt = createPrompt(mode, level, currentText, passNumber);
     let maxAttempts = 4;
     
+    // Ambil elemen status jeda untuk dimanipulasi warnanya
+    const statusJedaElem = document.getElementById("quotaResetTime");
+    
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
+            // Set warna ke hijau (Normal) sebelum menembak API
+            statusJedaElem.innerText = "Normal";
+            statusJedaElem.className = "status-normal"; 
+            
             return await callGeminiRaw(prompt);
         } catch (error) {
             if (error.message.includes("high demand") && attempt < maxAttempts) {
                 console.log(`[Attempt ${attempt}] Rate limit terdeteksi. Memulai hitung mundur...`);
                 
+                // Ubah warna menjadi MERAH dan berkedip karena terkena limit kuota
+                statusJedaElem.className = "status-cooldown";
+                
                 // Melakukan live countdown 5 detik ke layar UI
                 for (let countdown = 5; countdown > 0; countdown--) {
                     document.getElementById("statusMain").innerText = "Sistem Mengalami Jeda";
                     document.getElementById("statusStep").innerText = `Mencoba ulang otomatis dalam ${countdown} detik...`;
-                    document.getElementById("quotaResetTime").innerText = `Cooldown ${countdown}s`;
+                    statusJedaElem.innerText = `Cooldown ${countdown}s`;
                     await sleep(1000);
                 }
                 
-                document.getElementById("quotaResetTime").innerText = "Normal";
                 continue; 
             }
             throw error; 
