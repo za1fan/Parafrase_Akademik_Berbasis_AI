@@ -5,7 +5,7 @@
  */
 
 const CONFIG = {
-    MODEL: "llama3-70b-8192", // Model terbaru dengan performa terbaik untuk penulisan ulang
+    MODEL: "llama-3.3-70b-versatile", // Model terbaru dengan performa terbaik untuk penulisan ulang
     MAX_HISTORY: 10
 };
 
