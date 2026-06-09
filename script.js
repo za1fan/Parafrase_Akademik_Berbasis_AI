@@ -1,5 +1,5 @@
 const CONFIG = {
-    MODEL: "gemini-2.5-flash", 
+    MODEL: "gemini-2-flash", 
     MAX_HISTORY: 10
 };
 
