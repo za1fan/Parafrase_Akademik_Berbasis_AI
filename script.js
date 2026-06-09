@@ -5,7 +5,7 @@
  */
 
 const CONFIG = {
-    MODEL: "gemini-2.5-pro",
+    MODEL: "llama3-70b-8192", // Model terbaru dengan performa terbaik untuk penulisan ulang
     MAX_HISTORY: 10
 };
 
@@ -204,45 +204,42 @@ async function callGeminiWithRetry(mode, level, currentText, passNumber) {
     }
 }
 
-// --- Pure API Fetcher + Header Monitor ---
+// --- Pure API Fetcher untuk Groq Cloud ---
 async function callGeminiRaw(prompt) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${CONFIG.MODEL}:generateContent?key=${appState.apiKey}`;
+    // URL Endpoint resmi milik Groq
+    const url = "https://api.groq.com/openai/v1/chat/completions";
 
     const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${appState.apiKey}` // API Key Groq kamu masukkan di kotak input web
+        },
         body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, topP: 0.95 }
+            model: CONFIG.MODEL,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7
         })
     });
 
-    // AMBIL DATA KUOTA DARI HEADER RESPONS GOOGLE
-    const remainingQuota = response.headers.get('x-ratelimit-remaining');
-    if (remainingQuota !== null) {
-        document.getElementById("quotaRemaining").innerText = `${remainingQuota}x klik`;
-    } else {
-        document.getElementById("quotaRemaining").innerText = "Aktif (Gratisan)";
-    }
+    // Indikator visual kuota di layar web kamu
+    document.getElementById("quotaRemaining").innerText = "Aktif (Groq Free Tier)";
 
-    if (response.status === 429 || response.status === 503) {
+    if (response.status === 429) {
         throw new Error("high demand");
     }
 
     const data = await response.json();
 
     if (data.error) {
-        if (data.error.message.toLowerCase().includes("quota") || data.error.code === 429) {
-            throw new Error("high demand");
-        }
         throw new Error(data.error.message);
     }
 
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
-        throw new Error("Respon kosong atau diblokir oleh sistem keamanan Google.");
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error("Respon kosong dari server Groq.");
     }
 
-    return data.candidates[0].content.parts[0].text.trim();
+    return data.choices[0].message.content.trim();
 }
 
 // --- Prompt Engineering ---
