@@ -1,5 +1,11 @@
+/**
+ * Academic Rewriter AI Pro v3.0 - Live Quota Monitor
+ * Fitur: Multi-Pass Logic, Jaccard Similarity, Maximum Rewrite
+ * Perbaikan: Live Token/RPM Tracker & Countdown Timer Cooldown Realtime
+ */
+
 const CONFIG = {
-    MODEL: "gemini-2-flash", 
+    MODEL: "gemini-2-flash",
     MAX_HISTORY: 10
 };
 
@@ -77,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Core Logic: Multi-Pass Rewrite ---
+// --- Core Logic: Multi-Pass Rewrite (Versi Super Kebal Jaringan & Token Limit) ---
 async function startRewrite(passes) {
     const text = document.getElementById('inputText').value.trim();
     const mode = document.getElementById('modeSelect').value;
@@ -90,6 +97,7 @@ async function startRewrite(passes) {
     localStorage.setItem('gemini_pro_key', key);
     appState.apiKey = key;
 
+    // Kunci semua tombol antarmuka
     btnActions.forEach(btn => btn.disabled = true);
     toggleUI(true);
     let currentText = text;
@@ -97,12 +105,14 @@ async function startRewrite(passes) {
     try {
         for (let i = 1; i <= passes; i++) {
             if (i > 1) {
+                // Beri indikasi transisi antar tahapan
                 const statusJedaElem = document.getElementById("quotaResetTime");
-                statusJedaElem.innerText = "Jeda Sesi...";
-                statusJedaElem.className = "status-jeda";
-                
+                if (statusJedaElem) {
+                    statusJedaElem.innerText = "Jeda Sesi...";
+                    statusJedaElem.className = "status-jeda";
+                }
                 updateProgress((i / passes) * 100, `Jeda Pengamanan`, `Mengistirahatkan API Google sebentar...`);
-                await sleep(3000);
+                await sleep(3500); // Istirahat sejenak antar tahap agar aman dari deteksi spam
             }
 
             updateProgress(
@@ -111,13 +121,45 @@ async function startRewrite(passes) {
                 `AI sedang menyusun ulang teks akademik Anda...`
             );
 
-            currentText = await callGeminiWithRetry(mode, level, currentText, i);
+            // LOGIKA PERTAHANAN BERLAPIS: Jika fetch gagal total karena Token/RPM penuh di menit itu
+            let success = false;
+            let localAttempts = 1;
+            
+            while (!success) {
+                try {
+                    currentText = await callGeminiWithRetry(mode, level, currentText, i);
+                    success = true; // Jika berhasil, keluar dari loop pembungkus
+                } catch (innerError) {
+                    // Jika error-nya karena pembatasan kuota/token habis, paksa antre cooldown di sini!
+                    if (innerError.message.includes("high demand") && localAttempts <= 3) {
+                        console.log(`[Darurat Utama] Token penuh. Memaksa antrean cooldown lokal ke-${localAttempts}`);
+                        
+                        const statusJedaElem = document.getElementById("quotaResetTime");
+                        if (statusJedaElem) {
+                            statusJedaElem.className = "status-cooldown";
+                        }
+
+                        // Lakukan hitung mundur darurat 6 detik penuh agar jatah token menit baru disegarkan kembali
+                        for (let countdown = 6; countdown > 0; countdown--) {
+                            document.getElementById("statusMain").innerText = "Antrean Token Penuh";
+                            document.getElementById("statusStep").innerText = `Server sibuk, mencoba ulang otomatis dalam ${countdown} detik...`;
+                            if (statusJedaElem) statusJedaElem.innerText = `Cooldown ${countdown}s`;
+                            await sleep(1000);
+                        }
+                        
+                        localAttempts++;
+                    } else {
+                        // Jika memang error serius lainnya (API Key salah, internet mati), lemparkan keluar
+                        throw innerError;
+                    }
+                }
+            }
         }
 
         finalizeResult(text, currentText, mode);
     } catch (error) {
         console.error(error);
-        alert("Proses Terhenti: " + error.message);
+        alert("Koneksi Terputus Sembarangan: " + error.message);
     } finally {
         toggleUI(false);
         btnActions.forEach(btn => btn.disabled = false);
